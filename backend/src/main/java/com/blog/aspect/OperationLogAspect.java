@@ -4,8 +4,9 @@ import com.blog.annotation.OperationLog;
 import com.blog.mapper.OperationLogMapper;
 import com.blog.utils.IpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -18,10 +19,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Slf4j
 @Aspect
 @Component
 public class OperationLogAspect {
+
+    private static final Logger logger = LoggerFactory.getLogger(OperationLogAspect.class);
 
     @Autowired
     private OperationLogMapper operationLogMapper;
@@ -38,7 +40,7 @@ public class OperationLogAspect {
         try {
             saveLog(point, operationLog, endTime - startTime);
         } catch (Exception e) {
-            log.error("保存操作日志失败", e);
+            logger.error("保存操作日志失败", e);
         }
 
         return result;
@@ -75,7 +77,6 @@ public class OperationLogAspect {
 
         operationLogMapper.insert(log);
         
-        // 使用Slf4j的log记录日志，而不是实体对象的方法
-        OperationLogAspect.log.info("操作日志: {} - {}ms", operationLog.value(), time);
+        logger.info("操作日志: {} - {}ms", operationLog.value(), time);
     }
 }

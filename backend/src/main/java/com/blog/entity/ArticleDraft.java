@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.annotation.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@TableName("article")
-public class Article implements Serializable {
+@TableName("article_draft")
+public class ArticleDraft implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
@@ -13,21 +13,17 @@ public class Article implements Serializable {
 
     private Long userId;
 
-    private Long categoryId;
+    private Long articleId;
 
     private String title;
 
     private String content;
 
+    private Long categoryId;
+
     private String coverImage;
 
-    private Integer viewCount;
-
-    private Integer likeCount;
-
-    private Integer commentCount;
-
-    private Integer status;
+    private String tagIds;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
@@ -54,12 +50,12 @@ public class Article implements Serializable {
         this.userId = userId;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
+    public Long getArticleId() {
+        return articleId;
     }
 
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
+    public void setArticleId(Long articleId) {
+        this.articleId = articleId;
     }
 
     public String getTitle() {
@@ -78,6 +74,14 @@ public class Article implements Serializable {
         this.content = content;
     }
 
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
+
     public String getCoverImage() {
         return coverImage;
     }
@@ -86,36 +90,12 @@ public class Article implements Serializable {
         this.coverImage = coverImage;
     }
 
-    public Integer getViewCount() {
-        return viewCount;
+    public String getTagIds() {
+        return tagIds;
     }
 
-    public void setViewCount(Integer viewCount) {
-        this.viewCount = viewCount;
-    }
-
-    public Integer getLikeCount() {
-        return likeCount;
-    }
-
-    public void setLikeCount(Integer likeCount) {
-        this.likeCount = likeCount;
-    }
-
-    public Integer getCommentCount() {
-        return commentCount;
-    }
-
-    public void setCommentCount(Integer commentCount) {
-        this.commentCount = commentCount;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
+    public void setTagIds(String tagIds) {
+        this.tagIds = tagIds;
     }
 
     public LocalDateTime getCreateTime() {

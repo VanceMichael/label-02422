@@ -149,3 +149,22 @@ INSERT INTO `category` (`name`, `description`) VALUES
 -- 初始化标签
 INSERT INTO `tag` (`name`) VALUES 
 ('Java'), ('Spring Boot'), ('MySQL'), ('前端'), ('后端');
+
+-- 文章草稿表
+CREATE TABLE IF NOT EXISTS `article_draft` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '草稿ID',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `article_id` BIGINT DEFAULT NULL COMMENT '关联的文章ID（编辑已有文章时的草稿）',
+    `title` VARCHAR(200) DEFAULT NULL COMMENT '草稿标题',
+    `content` TEXT DEFAULT NULL COMMENT '草稿内容',
+    `category_id` BIGINT DEFAULT NULL COMMENT '分类ID',
+    `cover_image` VARCHAR(255) DEFAULT NULL COMMENT '封面图片',
+    `tag_ids` VARCHAR(500) DEFAULT NULL COMMENT '标签ID列表，逗号分隔',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_article_id` (`article_id`),
+    KEY `idx_update_time` (`update_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文章草稿表';
