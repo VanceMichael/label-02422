@@ -387,4 +387,171 @@ public class ArticleService {
         article.setLikeCount(article.getLikeCount() - 1);
         articleMapper.updateById(article);
     }
+
+    /**
+     * 自动保存文章草稿
+     * 
+     * 业务逻辑：
+     * 1. 如果草稿ID存在则更新，否则创建新草稿
+     * 2. 草稿状态固定为0
+     * 3. 每个用户最多保存20篇草稿，超出时自动删除最旧的草稿
+     * 
+     * @param dto 草稿内容
+     * @param userId 用户ID
+     * @return 草稿ID
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Long autoSaveDraft(ArticleDTO dto, Long userId) {
+        Article article;
+        if (dto.getId() != null) {
+            // 更新已有草稿
+            article = articleMapper.selectById(dto.getId());
+            if (article == null || !article.getUserId().equals(userId)) {
+                throw new BusinessException("草稿不存在或无权操作");
+            }
+            BeanUtils.copyProperties(dto, article);
+            articleMapper.updateById(article);
+        } else {
+            // 创建新草稿，先检查草稿数量
+            LambdaQueryWrapper<Article> countWrapper = new LambdaQueryWrapper<>();
+            countWrapper.eq(Article::getUserId, userId)
+                       .eq(Article::getStatus, ArticleStatusConstant.DRAFT)
+                       .eq(Article::getDeleted, 0);
+            int draftCount = articleMapper.selectCount(countWrapper).intValue();
+            
+            // 如果超过20篇，删除最旧的草稿
+            if (draftCount >= 20) {
+                LambdaQueryWrapper<Article> deleteWrapper = new LambdaQueryWrapper<>();
+                deleteWrapper.eq(Article::getUserId, userId)
+                            .eq(Article::getStatus, ArticleStatusConstant.DRAFT)
+                            .eq(Article::getDeleted, 0)
+                            .orderByAsc(Article::getUpdateTime)
+                            .last("LIMIT 1");
+                Article oldestDraft = articleMapper.selectOne(deleteWrapper);
+                if (oldestDraft != null) {
+                    articleMapper.deleteById(oldestDraft.getId());
+                }
+            }
+            
+            // 创建新草稿
+            article = new Article();
+            BeanUtils.copyProperties(dto, article);
+            article.setUserId(userId);
+            article.setStatus(ArticleStatusConstant.DRAFT);
+            article.setViewCount(0);
+            article.setLikeCount(0);
+            article.setCommentCount(0);
+            articleMapper.insert(article);
+        }
+        
+        // 更新标签关联
+        if (dto.getTagIds() != null) {
+            // 删除旧的标签关联
+            LambdaQueryWrapper<ArticleTag> tagWrapper = new LambdaQueryWrapper<>();
+            tagWrapper.eq(ArticleTag::getArticleId, article.getId());
+            articleTagMapper.delete(tagWrapper);
+            
+            // 创建新的标签关联
+            if (!dto.getTagIds().isEmpty()) {
+                for (Long tagId : dto.getTagIds()) {
+                    ArticleTag articleTag = new ArticleTag();
+                    articleTag.setArticleId(article.getId());
+                    articleTag.setTagId(tagId);
+                    articleTagMapper.insert(articleTag);
+                }
+            }
+        }
+        
+        return article.getId();
+    }
+
+    /**
+     * 获取用户草稿列表
+     * 
+     * @param userId 用户ID
+     * @return 草稿列表，按更新时间倒序排序
+     */
+    public List<ArticleVO> getDraftList(Long userId) {
+        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Article::getUserId, userId)
+               .eq(Article::getStatus, ArticleStatusConstant.DRAFT)
+               .eq(Article::getDeleted, 0)
+               .orderByDesc(Article::getUpdateTime);
+        
+        List<Article> drafts = articleMapper.selectList(wrapper);
+        
+        // 转换为VO并加载标签
+        return drafts.stream().map(draft -> {
+            ArticleVO vo = new ArticleVO();
+            BeanUtils.copyProperties(draft, vo);
+            List<String> tags = tagMapper.selectTagNamesByArticleId(draft.getId());
+            vo.setTags(tags);
+            return vo;
+        }).collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * 发布草稿
+     * 
+     * @param draftId 草稿ID
+     * @param dto 文章数据
+     * @param userId 用户ID
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void publishDraft(Long draftId, ArticleDTO dto, Long userId) {
+        Article draft = articleMapper.selectById(draftId);
+        if (draft == null || !draft.getUserId().equals(userId)) {
+            throw new BusinessException("草稿不存在或无权操作");
+        }
+        
+        // 更新为已发布状态
+        BeanUtils.copyProperties(dto, draft);
+        draft.setStatus(ArticleStatusConstant.PUBLISHED);
+        articleMapper.updateById(draft);
+        
+        // 更新标签关联
+        if (dto.getTagIds() != null) {
+            // 删除旧的标签关联
+            LambdaQueryWrapper<ArticleTag> tagWrapper = new LambdaQueryWrapper<>();
+            tagWrapper.eq(ArticleTag::getArticleId, draftId);
+            articleTagMapper.delete(tagWrapper);
+            
+            // 创建新的标签关联
+            if (!dto.getTagIds().isEmpty()) {
+                for (Long tagId : dto.getTagIds()) {
+                    ArticleTag articleTag = new ArticleTag();
+                    articleTag.setArticleId(draftId);
+                    articleTag.setTagId(tagId);
+                    articleTagMapper.insert(articleTag);
+                }
+            }
+        }
+    }
+
+    /**
+     * 删除草稿
+     * 
+     * @param draftId 草稿ID
+     * @param userId 用户ID
+     */
+    public void deleteDraft(Long draftId, Long userId) {
+        Article draft = articleMapper.selectById(draftId);
+        if (draft == null || !draft.getUserId().equals(userId)) {
+            throw new BusinessException("草稿不存在或无权操作");
+        }
+        articleMapper.deleteById(draftId);
+    }
+
+    /**
+     * 批量删除草稿
+     * 
+     * @param draftIds 草稿ID列表
+     * @param userId 用户ID
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void batchDeleteDrafts(List<Long> draftIds, Long userId) {
+        for (Long draftId : draftIds) {
+            deleteDraft(draftId, userId);
+        }
+    }
 }

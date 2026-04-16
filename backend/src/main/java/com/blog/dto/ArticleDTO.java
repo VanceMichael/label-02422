@@ -7,6 +7,8 @@ import java.util.List;
 
 @Data
 public class ArticleDTO {
+    private Long id;
+
     @NotBlank(message = "标题不能为空")
     private String title;
 
