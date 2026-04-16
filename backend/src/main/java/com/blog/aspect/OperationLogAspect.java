@@ -4,8 +4,9 @@ import com.blog.annotation.OperationLog;
 import com.blog.mapper.OperationLogMapper;
 import com.blog.utils.IpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -18,10 +19,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Slf4j
 @Aspect
 @Component
 public class OperationLogAspect {
+
+    private static final Logger logger = LoggerFactory.getLogger(OperationLogAspect.class);
 
     @Autowired
     private OperationLogMapper operationLogMapper;
@@ -38,7 +40,7 @@ public class OperationLogAspect {
         try {
             saveLog(point, operationLog, endTime - startTime);
         } catch (Exception e) {
-            log.error("保存操作日志失败", e);
+            logger.error("保存操作日志失败", e);
         }
 
         return result;
@@ -51,31 +53,30 @@ public class OperationLogAspect {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes != null ? attributes.getRequest() : null;
 
-        com.blog.entity.OperationLog log = new com.blog.entity.OperationLog();
-        log.setOperation(operationLog.value());
-        log.setMethod(method);
+        com.blog.entity.OperationLog operationLogEntity = new com.blog.entity.OperationLog();
+        operationLogEntity.setOperation(operationLog.value());
+        operationLogEntity.setMethod(method);
 
         try {
             Object[] args = point.getArgs();
             if (args != null && args.length > 0) {
-                log.setParams(objectMapper.writeValueAsString(args));
+                operationLogEntity.setParams(objectMapper.writeValueAsString(args));
             }
         } catch (Exception e) {
-            log.setParams("参数序列化失败");
+            operationLogEntity.setParams("参数序列化失败");
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof Long) {
-            log.setUserId((Long) authentication.getPrincipal());
+            operationLogEntity.setUserId((Long) authentication.getPrincipal());
         }
 
         if (request != null) {
-            log.setIp(IpUtil.getIpAddress(request));
+            operationLogEntity.setIp(IpUtil.getIpAddress(request));
         }
 
-        operationLogMapper.insert(log);
+        operationLogMapper.insert(operationLogEntity);
         
-        // 使用Slf4j的log记录日志，而不是实体对象的方法
-        OperationLogAspect.log.info("操作日志: {} - {}ms", operationLog.value(), time);
+        logger.info("操作日志: {} - {}ms", operationLog.value(), time);
     }
 }

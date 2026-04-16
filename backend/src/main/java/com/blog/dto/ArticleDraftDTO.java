@@ -1,24 +1,35 @@
 package com.blog.dto;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
-public class ArticleDTO {
-    @NotBlank(message = "标题不能为空")
-    private String title;
-
-    @NotBlank(message = "内容不能为空")
-    private String content;
+public class ArticleDraftDTO {
+    private Long articleId;
 
     private Long categoryId;
 
+    private String title;
+
+    private String content;
+
     private String coverImage;
 
-    @NotNull(message = "状态不能为空")
-    private Integer status;
-
     private List<Long> tagIds;
+
+    public Long getArticleId() {
+        return articleId;
+    }
+
+    public void setArticleId(Long articleId) {
+        this.articleId = articleId;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
 
     public String getTitle() {
         return title;
@@ -36,28 +47,12 @@ public class ArticleDTO {
         this.content = content;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
-
     public String getCoverImage() {
         return coverImage;
     }
 
     public void setCoverImage(String coverImage) {
         this.coverImage = coverImage;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
     }
 
     public List<Long> getTagIds() {

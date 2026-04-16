@@ -1,10 +1,8 @@
 package com.blog.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import lombok.Data;
 import java.io.Serializable;
 
-@Data
 @TableName("article_tag")
 public class ArticleTag implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -15,4 +13,28 @@ public class ArticleTag implements Serializable {
     private Long articleId;
 
     private Long tagId;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getArticleId() {
+        return articleId;
+    }
+
+    public void setArticleId(Long articleId) {
+        this.articleId = articleId;
+    }
+
+    public Long getTagId() {
+        return tagId;
+    }
+
+    public void setTagId(Long tagId) {
+        this.tagId = tagId;
+    }
 }
