@@ -122,4 +122,64 @@ public class ArticleController {
         articleService.unlikeArticle(id, userId);
         return Result.success("取消点赞成功");
     }
+
+    /**
+     * 自动保存草稿
+     */
+    @PostMapping("/drafts/auto-save")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @OperationLog("自动保存草稿")
+    public Result<Long> autoSaveDraft(@RequestBody ArticleDTO dto, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        Long draftId = articleService.autoSaveDraft(dto, userId);
+        return Result.success("保存成功", draftId);
+    }
+
+    /**
+     * 获取当前用户的草稿列表
+     */
+    @GetMapping("/drafts")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public Result<List<ArticleVO>> getDraftList(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return Result.success(articleService.getDraftList(userId));
+    }
+
+    /**
+     * 发布草稿
+     */
+    @PostMapping("/drafts/{draftId}/publish")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @OperationLog("发布草稿")
+    public Result<Object> publishDraft(@PathVariable Long draftId, 
+                                       @RequestBody ArticleDTO dto,
+                                       Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        articleService.publishDraft(draftId, dto, userId);
+        return Result.success("发布成功");
+    }
+
+    /**
+     * 删除草稿
+     */
+    @DeleteMapping("/drafts/{draftId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @OperationLog("删除草稿")
+    public Result<Object> deleteDraft(@PathVariable Long draftId, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        articleService.deleteDraft(draftId, userId);
+        return Result.success("删除成功");
+    }
+
+    /**
+     * 批量删除草稿
+     */
+    @DeleteMapping("/drafts/batch")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @OperationLog("批量删除草稿")
+    public Result<Object> batchDeleteDrafts(@RequestBody List<Long> draftIds, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        articleService.batchDeleteDrafts(draftIds, userId);
+        return Result.success("删除成功");
+    }
 }
