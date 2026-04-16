@@ -102,6 +102,24 @@ CREATE TABLE IF NOT EXISTS `article_like` (
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文章点赞表';
 
+-- 文章草稿表
+CREATE TABLE IF NOT EXISTS `article_draft` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '草稿ID',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `article_id` BIGINT DEFAULT NULL COMMENT '关联的文章ID（编辑已有文章时）',
+    `category_id` BIGINT DEFAULT NULL COMMENT '分类ID',
+    `title` VARCHAR(200) DEFAULT NULL COMMENT '文章标题',
+    `content` TEXT COMMENT '文章内容',
+    `cover_image` VARCHAR(255) DEFAULT NULL COMMENT '封面图片',
+    `tag_ids` VARCHAR(500) DEFAULT NULL COMMENT '标签ID列表，逗号分隔',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_update_time` (`update_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文章草稿表';
+
 -- 文件上传表
 CREATE TABLE IF NOT EXISTS `file_upload` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '文件ID',

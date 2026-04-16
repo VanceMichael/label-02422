@@ -1,7 +1,8 @@
 package com.blog.exception;
 
 import com.blog.vo.Result;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -29,9 +30,10 @@ import java.util.stream.Collectors;
  * 统一处理系统中的各类异常，返回友好的错误信息给前端
  * 避免将系统内部错误直接暴露给用户
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * 业务异常处理

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.blog.mapper.ArticleDraftMapper">
+
+    <resultMap id="ArticleDraftVOResultMap" type="com.blog.vo.ArticleDraftVO">
+        <id column="id" property="id"/>
+        <result column="article_id" property="articleId"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="tag_ids" property="tagIds"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectDraftList" resultMap="ArticleDraftVOResultMap">
+        SELECT id, article_id, category_id, title, content, cover_image, tag_ids, create_time, update_time
+        FROM article_draft
+        WHERE user_id = #{userId} AND deleted = 0
+        ORDER BY update_time DESC
+    </select>
+
+    <select id="selectDraftById" resultMap="ArticleDraftVOResultMap">
+        SELECT id, article_id, category_id, title, content, cover_image, tag_ids, create_time, update_time
+        FROM article_draft
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectDraftCount" resultType="int">
+        SELECT COUNT(*)
+        FROM article_draft
+        WHERE user_id = #{userId} AND deleted = 0
+    </select>
+
+    <select id="selectOldestDraft" resultType="com.blog.entity.ArticleDraft">
+        SELECT id, user_id, article_id, category_id, title, content, cover_image, tag_ids, create_time, update_time
+        FROM article_draft
+        WHERE user_id = #{userId} AND deleted = 0
+        ORDER BY update_time ASC
+        LIMIT 1
+    </select>
+
+</mapper>
